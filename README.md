@@ -25,15 +25,6 @@ This project is a first-person 3D simulation where a user can walk around a virt
 ### Mouse Controls
 - **Left-click**: Hold and move the mouse to look up, down, left, and right.
 - **Movement**: Use the mouse to rotate the view horizontally, which also updates the movement direction.
-
-## Project Structure
-
-- **app.py**: Flask server handling static file serving and routing.
-- **static/**:
-  - **3D/**: Contains the 3D model files (e.g., `room.glb`).
-  - **scripts/**: Contains `controls.js`, which manages the camera and movement logic.
-- **templates/**:
-  - **index.html**: The main HTML file displaying the 3D scene and including the necessary scripts.
   
 ## How It Works
 
