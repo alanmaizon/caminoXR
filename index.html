@@ -37,7 +37,7 @@
         let pitch = 0;
         let maxPitch = Math.PI / 4;
         let jumpSpeed = 0.1;
-        let jumpHeight = 1.5;
+        let jumpHeight = 1;
         let jumpTime = 1;
         let returnToStanding = false;
             
@@ -70,11 +70,11 @@
         loader.load('room.glb', function (gltf) {
             const model = gltf.scene;
             model.position.set(1, 0, 0);
-            model.rotation.y = THREE.Math.degToRad(45);
+            model.rotation.y = THREE.Math.degToRad(0);
             scene.add(model);
         });
         
-        camera.up.set(0, 1, 0);
+        camera.up.set(0, 0.5, 0);
         
         // Event listeners for movement and mouse controls
         document.addEventListener('keydown', onKeyDown, false);
