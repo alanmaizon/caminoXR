@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TUTTI FRUTTI</title>
+    <title>Umbrella</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         body {
             margin: 0;
@@ -32,7 +33,6 @@
     <!-- Include Three.js and GLTFLoader -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
     <script>
         let scene, camera, renderer;
         let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
@@ -51,10 +51,15 @@
         let initialTouchY = 0;
         let isTouching = false;
         let touchSensitivity = 0.005;
-
+        
         const standingHeight = 1;
         const crouchHeight = 0.6;
         const jumpDuration = 1.6;
+
+        let cameraQuaternion = new THREE.Quaternion();
+        let pitchQuaternion = new THREE.Quaternion();
+        let yawQuaternion = new THREE.Quaternion();
+        let yaw = 0;
 
         // Create scene
         scene = new THREE.Scene();
@@ -76,59 +81,30 @@
         directionalLight.position.set(0, 1, 1).normalize();
         scene.add(directionalLight);
 
-        // Load the 3D bedroom model and add "TUTTI FRUTTI" text
+        // Load the 3D bedroom model using GLTFLoader
         const loader = new THREE.GLTFLoader();
         loader.load('room.glb', function (gltf) {
             const model = gltf.scene;
-            model.position.set(-0.45, 0, 0);
+            model.position.set(0, 0, 0);
             scene.add(model);
-
-            // Add text to the wall after the model is loaded
-            addTextToFrontWall();
         });
-
-        // Add "TUTTI FRUTTI" text to the front wall
-        function addTextToFrontWall() {
-            const fontLoader = new THREE.FontLoader();
-
-            fontLoader.load('nada.json', function (font) {
-                const textGeometry = new THREE.TextGeometry("I   LOVE\nNETFLIX", {
-                    font: font,
-                    size: 0.2,       // Small size
-                    height: 0.4,    // Thin letters
-                    curveSegments: 40,
-                    bevelEnabled: true,
-                    bevelThickness: 0.05,
-                    bevelSize: 0.02,
-                    bevelOffset: 0,
-                    bevelSegments: 40
-                });
-
-                const textureLoader = new THREE.TextureLoader();
-                const textTexture = textureLoader.load('text_texture.png');
-
-                // Create material with the texture
-                const textMaterial = new THREE.MeshBasicMaterial({ map: textTexture });        
-                const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-
-                // Center the text on the front wall
-                textGeometry.computeBoundingBox();
-                const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-
-                textMesh.position.set(-textWidth / 2.2 , 1.45, -2.5);  // Adjust position on the front wall
-                scene.add(textMesh);
-                textMesh.renderOrder = 1;  // Force the text to render on top
-            });
-        }
-
-
 
         // Event listeners for movement and mouse controls
         document.addEventListener('keydown', onKeyDown, false);
         document.addEventListener('keyup', onKeyUp, false);
         document.addEventListener('mousemove', onMouseMove, false);
-        document.addEventListener('mousedown', onMouseDown, false);
-        document.addEventListener('mouseup', onMouseUp, false);
+        
+        document.addEventListener('click', function() {
+            document.body.requestPointerLock();
+        }, false);
+
+        document.addEventListener('pointerlockchange', function() {
+            if (document.pointerLockElement === document.body) {
+                document.addEventListener('mousemove', onMouseMove, false);
+            } else {
+                document.removeEventListener('mousemove', onMouseMove, false);
+            }
+        }, false);
 
         function onKeyDown(event) {
             switch (event.code) {
@@ -226,26 +202,23 @@
         }
 
         function onMouseMove(event) {
-            if (isDragging) {
-                const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-                const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+            const movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+            const movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
-                camera.rotation.y -= movementX * mouseSensitivity;
+            // Update yaw (left/right) rotation
+            yaw -= movementX * mouseSensitivity;
+            yawQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
 
-                pitch -= movementY * mouseSensitivity;
-                pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch));
-                camera.rotation.x = pitch;
+            // Update pitch (up/down) rotation
+            pitch -= movementY * mouseSensitivity;
+            pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch)); // Limit pitch to 90 degrees each side
+            pitchQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
 
-                camera.rotation.z = 0;  // Lock the z-axis to avoid diagonal inclination
-            }
-        }
+            // Combine yaw and pitch rotations
+            cameraQuaternion.copy(yawQuaternion).multiply(pitchQuaternion);
 
-        function onMouseDown(event) {
-            isDragging = true;
-        }
-
-        function onMouseUp(event) {
-            isDragging = false;
+            // Apply the quaternion to the camera's rotation
+            camera.quaternion.copy(cameraQuaternion);
         }
 
         function animate() {
