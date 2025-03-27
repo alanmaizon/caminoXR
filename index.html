@@ -215,9 +215,7 @@
             pitchQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
 
             // Combine yaw and pitch rotations
-            cameraQuaternion.copy(yawQuaternion).multiply(pitchQuaternion);
-
-            // Apply the quaternion to the camera's rotation
+            cameraQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
             camera.quaternion.copy(cameraQuaternion);
         }
 
@@ -259,10 +257,10 @@
                 camera.position.y = THREE.Math.lerp(camera.position.y, standingHeight, 0.1);
             }
 
-            if (camera.position.x + velocity.x > -2 && camera.position.x + velocity.x < 2) {
+            if (camera.position.x + velocity.x > -4 && camera.position.x + velocity.x < 4) {
                 camera.position.x += velocity.x;
             }
-            if (camera.position.z + velocity.z > -2 && camera.position.z + velocity.z < 2) {
+            if (camera.position.z + velocity.z > -4 && camera.position.z + velocity.z < 4) {
                 camera.position.z += velocity.z;
             }
 
