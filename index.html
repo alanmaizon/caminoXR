@@ -286,33 +286,25 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+        const guidedAudio = document.getElementById('guidedAudio');
 
-        document.getElementById('openMeditation').addEventListener('click', () => {
-            document.getElementById('meditationModal').style.display = 'block';
-            document.exitPointerLock(); // Exit pointer lock for better UI control
+        // Try to play immediately (works if autoplay is allowed)
+        guidedAudio.play().catch(() => {
+            // If blocked, wait for user interaction
+            const resumeAudio = () => {
+                guidedAudio.play();
+                document.removeEventListener('click', resumeAudio);
+            };
+            document.addEventListener('click', resumeAudio);
         });
-        
-        document.getElementById('closeMeditation').addEventListener('click', () => {
-            document.getElementById('meditationModal').style.display = 'none';
-        });
+
 
     </script>
-<!-- Button to Open Modal -->
-<button id="openMeditation" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">🧘 Guided Meditation</button>
 
-<!-- Modal -->
-<div id="meditationModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.8); color: white; text-align: center; padding-top: 100px;">
-    <div style="max-width: 600px; margin: auto; background-color: #222; padding: 20px; border-radius: 10px;">
-        <h2>Relax & Breathe</h2>
-        <p>Close your eyes and take a deep breath. Let the world around you dissolve as you connect with your inner stillness...</p>
-        <audio controls>
-            <source src="meditation.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-        <br><br>
-        <button id="closeMeditation">Close</button>
-    </div>
-</div>
-
+<audio id="guidedAudio" autoplay>
+    <source src="meditation.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+</audio>
+  
 </body>
 </html>
