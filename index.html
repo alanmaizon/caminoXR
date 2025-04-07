@@ -286,18 +286,6 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        const guidedAudio = document.getElementById('guidedAudio');
-
-        // Try to play immediately (works if autoplay is allowed)
-        guidedAudio.play().catch(() => {
-            // If blocked, wait for user interaction
-            const resumeAudio = () => {
-                guidedAudio.play();
-                document.removeEventListener('click', resumeAudio);
-            };
-            document.addEventListener('click', resumeAudio);
-        });
-
 
     </script>
 
@@ -305,6 +293,21 @@
     <source src="meditation.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
 </audio>
+
+<script>
+    const guidedAudio = document.getElementById('guidedAudio');
+
+    if (guidedAudio) {
+        guidedAudio.play().catch(() => {
+            const resumeAudio = () => {
+                guidedAudio.play();
+                document.removeEventListener('click', resumeAudio);
+            };
+            document.addEventListener('click', resumeAudio);
+        });
+    }
+</script>
   
+    
 </body>
 </html>
