@@ -64,6 +64,7 @@
         const playerBox = new THREE.Box3();
         const triggerBox = new THREE.Box3();
         let canTriggerPrayer = false;
+        let prayerTrigger;
         const loader = new THREE.GLTFLoader();
 
         // Create scene
@@ -101,15 +102,16 @@
             scene.add(model);
 
             // Add prayer trigger
-            const prayerTrigger = new THREE.Mesh(
+            prayerTrigger = new THREE.Mesh(
                 new THREE.BoxGeometry(2, 2, 2),
-                new THREE.MeshBasicMaterial({ color: 0xffff00, visible: false }) // set visible: true for debugging
+                new THREE.MeshBasicMaterial({ color: 0xffff00, visible: false })
             );
-            prayerTrigger.position.set(0, 1, -8); // Adjust Z to match the far end of the room
+            prayerTrigger.position.set(0, 1, -8);
             scene.add(prayerTrigger);
 
             // Initialize triggerBox
             triggerBox.setFromObject(prayerTrigger);
+
         });
 
 
