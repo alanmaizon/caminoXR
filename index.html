@@ -95,6 +95,9 @@
             model.position.set(0, 0, 0);
             model.rotation.y = Math.PI;
             scene.add(model);
+        
+            // Ensure the model's world matrix is updated after adding it to the scene
+            model.updateWorldMatrix(true, true);
         });
 
 
