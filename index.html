@@ -61,6 +61,10 @@
         let yawQuaternion = new THREE.Quaternion();
         let yaw = 0;
 
+        const playerBox = new THREE.Box3();
+        const triggerBox = new THREE.Box3();
+        let canTriggerPrayer = false;
+
         // Create scene
         scene = new THREE.Scene();
         const skyGeometry = new THREE.SphereGeometry(100, 32, 32);
@@ -89,14 +93,23 @@
         scene.add(directionalLight);
 
         // Load the 3D bedroom model using GLTFLoader
-        const loader = new THREE.GLTFLoader();
         loader.load('room.glb', function (gltf) {
             const model = gltf.scene;
             model.position.set(0, 0, 0);
             model.rotation.y = Math.PI;
             scene.add(model);
-        });
 
+            // Add prayer trigger
+            const prayerTrigger = new THREE.Mesh(
+                new THREE.BoxGeometry(2, 2, 2),
+                new THREE.MeshBasicMaterial({ color: 0xffff00, visible: false }) // set visible: true for debugging
+            );
+            prayerTrigger.position.set(0, 1, -8); // Adjust Z to match the far end of the room
+            scene.add(prayerTrigger);
+
+            // Initialize triggerBox
+            triggerBox.setFromObject(prayerTrigger);
+        });
 
 
         // Event listeners for movement and mouse controls
@@ -231,23 +244,24 @@
             camera.quaternion.copy(cameraQuaternion);
         }
 
+        // Animation loop
         function animate() {
             requestAnimationFrame(animate);
-
+            
             direction.set(0, 0, 0);
-
+            
             if (moveForward) direction.z -= 1;
             if (moveBackward) direction.z += 1;
             if (moveLeft) direction.x -= 1;
             if (moveRight) direction.x += 1;
-
+            
             direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), camera.rotation.y);
-
+            
             if (direction.length() > 0) direction.normalize();
-
+            
             velocity.x = direction.x * 0.1;
             velocity.z = direction.z * 0.1;
-
+            
             // Jump logic
             if (isJumping) {
                 jumpTime += 0.05;
@@ -258,7 +272,6 @@
                     returnToStanding = true;
                 }
             } else if (returnToStanding) {
-                // Smoothly return to standing height using easing (lerp)
                 camera.position.y = THREE.Math.lerp(camera.position.y, standingHeight, 0.1);
                 if (Math.abs(camera.position.y - standingHeight) < 0.01) {
                     returnToStanding = false;
@@ -268,14 +281,21 @@
             } else {
                 camera.position.y = THREE.Math.lerp(camera.position.y, standingHeight, 0.1);
             }
-
+        
             if (camera.position.x + velocity.x > -10 && camera.position.x + velocity.x < 10) {
                 camera.position.x += velocity.x;
             }
             if (camera.position.z + velocity.z > -10 && camera.position.z + velocity.z < 10) {
                 camera.position.z += velocity.z;
             }
-
+        
+            // Collision detection logic
+            playerBox.setFromCenterAndSize(camera.position, new THREE.Vector3(1, 2, 1));
+            triggerBox.setFromObject(prayerTrigger);
+            canTriggerPrayer = playerBox.intersectsBox(triggerBox);
+        
+            document.getElementById('prompt').style.display = canTriggerPrayer ? 'block' : 'none';
+        
             renderer.render(scene, camera);
         }
 
