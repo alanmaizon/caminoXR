@@ -286,28 +286,27 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+    </script>
+    <script>
+        window.onload = () => {
+            const guidedAudio = document.getElementById('guidedAudio');
 
+            if (!guidedAudio) return;
+
+            guidedAudio.play().catch(() => {
+                const resumeAudio = () => {
+                    guidedAudio.play();
+                    document.removeEventListener('click', resumeAudio);
+                };
+                document.addEventListener('click', resumeAudio);
+            });
+        };
     </script>
 
-<audio id="guidedAudio" autoplay>
-    <source src="meditation.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-</audio>
-
-<script>
-    const guidedAudio = document.getElementById('guidedAudio');
-
-    if (guidedAudio) {
-        guidedAudio.play().catch(() => {
-            const resumeAudio = () => {
-                guidedAudio.play();
-                document.removeEventListener('click', resumeAudio);
-            };
-            document.addEventListener('click', resumeAudio);
-        });
-    }
-</script>
-  
+    <audio id="guidedAudio" autoplay>
+        <source src="meditation.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
     
 </body>
 </html>
