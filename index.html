@@ -61,12 +61,6 @@
         let yawQuaternion = new THREE.Quaternion();
         let yaw = 0;
 
-        const playerBox = new THREE.Box3();
-        const triggerBox = new THREE.Box3();
-        let canTriggerPrayer = false;
-        let prayerTrigger;
-        const loader = new THREE.GLTFLoader();
-
         // Create scene
         scene = new THREE.Scene();
         const skyGeometry = new THREE.SphereGeometry(100, 32, 32);
@@ -95,24 +89,14 @@
         scene.add(directionalLight);
 
         // Load the 3D bedroom model using GLTFLoader
+        const loader = new THREE.GLTFLoader();
         loader.load('room.glb', function (gltf) {
             const model = gltf.scene;
             model.position.set(0, 0, 0);
             model.rotation.y = Math.PI;
             scene.add(model);
-
-            // Add prayer trigger
-            prayerTrigger = new THREE.Mesh(
-                new THREE.BoxGeometry(2, 2, 2),
-                new THREE.MeshBasicMaterial({ color: 0xffff00, visible: false })
-            );
-            prayerTrigger.position.set(0, 1, -8);
-            scene.add(prayerTrigger);
-
-            // Initialize triggerBox
-            triggerBox.setFromObject(prayerTrigger);
-
         });
+
 
 
         // Event listeners for movement and mouse controls
@@ -247,24 +231,23 @@
             camera.quaternion.copy(cameraQuaternion);
         }
 
-        // Animation loop
         function animate() {
             requestAnimationFrame(animate);
-            
+
             direction.set(0, 0, 0);
-            
+
             if (moveForward) direction.z -= 1;
             if (moveBackward) direction.z += 1;
             if (moveLeft) direction.x -= 1;
             if (moveRight) direction.x += 1;
-            
+
             direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), camera.rotation.y);
-            
+
             if (direction.length() > 0) direction.normalize();
-            
+
             velocity.x = direction.x * 0.1;
             velocity.z = direction.z * 0.1;
-            
+
             // Jump logic
             if (isJumping) {
                 jumpTime += 0.05;
@@ -275,6 +258,7 @@
                     returnToStanding = true;
                 }
             } else if (returnToStanding) {
+                // Smoothly return to standing height using easing (lerp)
                 camera.position.y = THREE.Math.lerp(camera.position.y, standingHeight, 0.1);
                 if (Math.abs(camera.position.y - standingHeight) < 0.01) {
                     returnToStanding = false;
@@ -284,21 +268,14 @@
             } else {
                 camera.position.y = THREE.Math.lerp(camera.position.y, standingHeight, 0.1);
             }
-        
+
             if (camera.position.x + velocity.x > -10 && camera.position.x + velocity.x < 10) {
                 camera.position.x += velocity.x;
             }
             if (camera.position.z + velocity.z > -10 && camera.position.z + velocity.z < 10) {
                 camera.position.z += velocity.z;
             }
-        
-            // Collision detection logic
-            playerBox.setFromCenterAndSize(camera.position, new THREE.Vector3(1, 2, 1));
-            triggerBox.setFromObject(prayerTrigger);
-            canTriggerPrayer = playerBox.intersectsBox(triggerBox);
-        
-            document.getElementById('prompt').style.display = canTriggerPrayer ? 'block' : 'none';
-        
+
             renderer.render(scene, camera);
         }
 
@@ -323,20 +300,13 @@
                 };
                 document.addEventListener('click', resumeAudio);
             });
-        }
-        window.addEventListener('keydown', function (event) {
-            if (event.code === 'Enter' && canTriggerPrayer) {
-                const audio = document.getElementById('guidedAudio');
-                if (audio.paused) {
-                    audio.play();
-                }
-            }
-        });
+        };
     </script>
 
-    <audio id="guidedAudio" src="meditation.mp3"></audio>
-    <div id="prompt" style="display:none; position:fixed; bottom:30px; width:100%; text-align:center; color:white; font-size:20px;">
-        Press ENTER to begin the prayer
-    </div>
+    <audio id="guidedAudio" autoplay>
+        <source src="meditation.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
 </body>
 </html>
